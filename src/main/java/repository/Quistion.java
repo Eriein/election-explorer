@@ -65,53 +65,88 @@ public class Quistion {
 	public Node getFront(){
 		return this.head;
 	}
-	
-	public void enQueue(int fish, String hsif, String ifhs, String shfi, long fishhsififhsshfi){
-		Node newNode = new Node(fish, hsif, ifhs, shfi, fishhsififhsshfi, null);
-		if(isEmpty()){
-			head = tail = newNode;
-		}else{
-			this.tail.next = newNode;
-			this.tail = newNode;
-		}
-		if(fishhsififhsshfi > this.highVote){
-			this.highVote = fishhsififhsshfi;
-		}
-		this.size = this.size + 1;
-	}
-	
-	public String deQueueVote(){
-		if(head == null){
-			System.out.print("List is empty.");
-			return null;
-		}else{
-			Node Current;
-			Current = head;
-			if(Current.getVot() != this.highVote){
-				for(int E = 1; E > 0; E++){
-					long diff = Current.next.getVot() - this.highVote;
-					if(diff > 0){
-						Current = Current.next;
-					}else{
-						break;
-					}
-				}
-			}
-			Current.next = Current.next.next;
-			this.size = this.size - 1;
-			// Please put a method to send the queue node's data into another data method.
-			String TEMP = "Please put that same method in.";
-			return TEMP;
-		}
-	}
-	public void display(){
-		Node Current;
-		Current = head;
-		int counter = 0;
-		while(counter != this.size){
-			counter++;
-			System.out.println(" LinkedList #"+counter+" : At "+Current.getVot()+"Votes, "+Current.getPar()+" of "+Current.getSta()+", Candidate "+Current.getNam()+" from year #"+Current.getYea());
-			Current = Current.next;
-		}
-	}
+
+    public void enQueue(int year, String state, String party, String name, long votes) {
+        Node newNode = new Node(year, state, party, name, votes, null);
+
+        if (isEmpty() || votes > head.getVot()) {
+            // Insert at head
+            newNode.next = head;
+            head = newNode;
+            if (tail == null) {
+                tail = newNode;
+            }
+        } else {
+            // insert at the correct position
+            Node current = head;
+            while (current.next != null && current.next.getVot() >= votes) {
+                current = current.next;
+            }
+            newNode.next = current.next;
+            current.next = newNode;
+            if (newNode.next == null) {
+                tail = newNode;
+            }
+        }
+        size++;
+    }
+
+    public String[] deQueueVote() {
+        if (isEmpty()) {
+            System.out.println("List is empty.");
+            return null;
+        }
+        String name = head.getNam();
+        String votes = Long.toString(head.getVot());
+        String[] info = new String[2];
+        info[0] = name;
+        info[1] = votes;
+        head = head.next;
+        size--;
+
+        if (head == null) {
+            tail = null;
+        }
+
+        return info;
+    }
+
+    public void generateReport() {
+        Node current = head;
+        String[] stateNames = new String[this.getSize()];
+        long[] stateVotes = new long[this.getSize()];
+        int uniqueCount = 0;
+
+        while (current != null) {
+            String state = current.getSta();
+            long votes = current.getVot();
+            boolean found = false;
+
+            // Check if state already exists
+            for (int i = 0; i < uniqueCount; i++) {
+                if (state.equals(stateNames[i])) {
+                    stateVotes[i] += votes;
+                    found = true;
+                    break;
+                }
+            }
+
+            // If it's a new state, add to arrays
+            if (!found) {
+                stateNames[uniqueCount] = state;
+                stateVotes[uniqueCount] = votes;
+                uniqueCount++;
+            }
+
+            current = current.next;
+        }
+
+        // Print results
+        System.out.println("*** Votes by State ***");
+        for (int i = 0; i < uniqueCount; i++) {
+            System.out.printf("State '%s' has %d votes.%n", stateNames[i], stateVotes[i]);
+        }
+        System.out.println();
+    }
+
 }

@@ -44,17 +44,18 @@ public class BinarySearchTree<E extends Comparable<E>> {
 
         while (true) {
             parent = current;
-
-            if (data.compareTo(current.getData()) == 0) {
+            int compare = data.compareTo(current.getData());
+            if ( compare == 0) { // equal
                 throw new IllegalArgumentException("Duplicate Value: " + data);
             }
-            else if (data.compareTo(current.getData()) < 0) {
+            // less than
+            else if (compare < 0) {
                 current = current.leftChild;
                 if (current == null) {
                     parent.leftChild = newNode;
                     break;
                 }
-            }
+            }// greater than
             else {
                 current = current.rightChild;
                 if (current == null) {
@@ -72,18 +73,17 @@ public class BinarySearchTree<E extends Comparable<E>> {
         BinaryTreeNode<E> current = root;
 
         while (current != null) {
-            if (current.getData().compareTo(value) > 0) {
-                current = current.rightChild;   // kept EXACT as your logic
-            }
-            else if (current.getData().compareTo(value) < 0) {
-                current = current.leftChild;    // kept EXACT as your logic
-            }
-            else {
-                throw new IllegalArgumentException("A duplicate object was found " + value);
+            int compare = value.compareTo(current.getData());
+            if (compare < 0) {
+                current = current.leftChild;
+            } else if (compare > 0) {
+                current = current.rightChild;
+            } else {
+                return current; // Match found
             }
         }
 
-        return current;
+        return null; // Not found
     }
 
     // left, root, right
@@ -92,6 +92,7 @@ public class BinarySearchTree<E extends Comparable<E>> {
 
         inorder(node.leftChild);
         System.out.print(node.getData() + " ");
+        System.out.println();
         inorder(node.rightChild);
     }
 
@@ -100,6 +101,7 @@ public class BinarySearchTree<E extends Comparable<E>> {
         if (node == null) return;
 
         System.out.print(node.getData() + " ");
+        System.out.println();
         preorder(node.leftChild);
         preorder(node.rightChild);
     }
@@ -111,6 +113,7 @@ public class BinarySearchTree<E extends Comparable<E>> {
         postorder(node.leftChild);
         postorder(node.rightChild);
         System.out.print(node.getData() + " ");
+        System.out.println();
     }
 
     public E getMinimum(BinaryTreeNode<E> node) {
@@ -119,7 +122,7 @@ public class BinarySearchTree<E extends Comparable<E>> {
             return null;
         }
 
-        BinaryTreeNode<E> current = root;
+        BinaryTreeNode<E> current = node;
 
         while (current.leftChild != null) {
             current = current.leftChild;
@@ -134,7 +137,7 @@ public class BinarySearchTree<E extends Comparable<E>> {
             return null;
         }
 
-        BinaryTreeNode<E> current = root;
+        BinaryTreeNode<E> current = node;
 
         while (current.rightChild != null) {
             current = current.rightChild;
