@@ -37,6 +37,7 @@ public class User {
                     case 5 -> electionService.display();
                     case 6 -> electionService.bstMenu(sc);
                     case 7 -> electionService.generateReport();
+                    // case 8 -> electionService.stackOperations
                     case 0 -> System.out.println("Exiting...");
                     default -> System.out.println("Invalid choice!");
                 }
