@@ -1,32 +1,38 @@
 package repository;
 
-import entity.ElectionData;
+public class ArrayStack<T> {
+    private final T[] stack;
+    private int top = -1;
+    private final int CAPACITY=100;
 
-public class ArrayStack {
-    private ElectionData[] stack;
-    private int top;
-    private int CAPACITY=100;
-
+    @SuppressWarnings("unchecked")
     public ArrayStack(){
-        this.stack = new ElectionData[CAPACITY];
-        top=-1;
+        this.stack = (T[]) new Object[CAPACITY];
     }
 
-    public void push (ElectionData electionData){
+    public void push (T data){
         if (top==CAPACITY-1){
             System.out.println("Stack is full!");
         }else{
             top+=1;
-            stack[top]=electionData;
+            stack[top]=data;
         }
     }
 
-    public ElectionData peek(){
+    public T peek(){
         if(isEmpty()){
             System.out.println("Stack is empty.");
             return null;
         }
         return stack[top];
+    }
+
+    public T pop(){
+        if(isEmpty()){
+            System.out.println("Stack is empty.");
+            return null;
+        }
+        return stack[top--];
     }
 
     public boolean isEmpty() {

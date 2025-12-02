@@ -14,9 +14,10 @@ import static entity.ElectionData.header;
 public class ElectionService {
     private static final String BAR = "=====================================================================================";
     private Array<ElectionData> myArray;
-    private LinkedList<ElectionData> myLinkedList;
+    private DoublyLinkedList<ElectionData> myLinkedList;
     private MyArrayList<ElectionData> myArrayList;
     private BinarySearchTree<ElectionData> myBST;
+    private ArrayStack<UndoAction> myStack;
     private Quistion myQueue;
     /**
      * Loads election data from the raw data source into multiple data structures:
@@ -24,10 +25,11 @@ public class ElectionService {
      */
     public void loadData() {
         this.myArray = Array.loadData();
-        myLinkedList = new LinkedList<>();
+        myLinkedList = new DoublyLinkedList<>();
         myArrayList = new MyArrayList<>();
         myBST = new BinarySearchTree<>();
         myQueue = new Quistion();
+        myStack = new ArrayStack<>();
 
         int pos = 0;
         for (int i = 0; i < myArray.size(); i++) {
@@ -103,20 +105,23 @@ public class ElectionService {
         }
 
         ElectionData data = new ElectionData(year, state, party, candidate, votes);
-        myLinkedList.addLast(data);
+        myLinkedList.addFirst(data);
+        myStack.push(new UndoAction(Action.INSERT, data, myLinkedList.getTail()));
+
+        System.out.println(BAR);
+        System.out.println("\t\t*** CANDIDATE INSERTED ***");
         System.out.println(header());
         System.out.println(data);
-        System.out.println("Record inserted successfully.");
     }
 
 
     /**
-     * search election data from the LinkedList data structure
+     * search election data from the DoublyLinkedList data structure
      */
     public void searchRecord(Scanner sc) {
         System.out.println(BAR);
         System.out.print("Enter candidate name to search for: ");
-        LinkedList.Node<ElectionData> current = getElectionRecordNode(sc);
+        DoublyLinkedList.Node<ElectionData> current = getElectionRecordNode(sc);
         if(current != null) {
             System.out.println(header());
             System.out.println(current.getData());
@@ -130,17 +135,20 @@ public class ElectionService {
     public void updateRecord(Scanner sc) {
         System.out.println(BAR);
         System.out.print("Enter candidate name to update: ");
-        LinkedList.Node<ElectionData> node = getElectionRecordNode(sc);
+        DoublyLinkedList.Node<ElectionData> node = getElectionRecordNode(sc);
         if (node == null) return;
 
         ElectionData data = node.getData();
+        ElectionData oldData = new ElectionData(data.getYear(), data.getState(), data.getParty(), data.getCandidateName(), data.getVotesReceived());
+        myStack.push(new UndoAction(Action.UPDATE, oldData, node));
 
         System.out.println("What do you want to update?");
         System.out.println("1. Year");
         System.out.println("2. State");
         System.out.println("3. Party");
-        System.out.println("4. Candidate");
+        System.out.println("4. Candidate Name");
         System.out.println("5. Votes");
+        System.out.print("Enter Choice: ");
 
         try {
             int choice = Integer.parseInt(sc.nextLine());
@@ -154,26 +162,29 @@ public class ElectionService {
         }catch (NumberFormatException e) {
             System.out.println("Please Enter a Choice as a Number for Example 1,2,3,4,5");
         }
-
+        System.out.println("\t\t*** RECORD UPDATED ***");
         System.out.println(header());
         System.out.println(data);
-        System.out.println("Record updated.");
+        
         System.out.println(BAR);
     }
 
     public  void deleteRecord(Scanner sc) {
         System.out.println(BAR);
-        System.out.println("Enter candidate name to delete its record");
-        LinkedList.Node<ElectionData> current = getElectionRecordNode(sc);
+        System.out.println("Enter candidate name to delete its record: ");
+        DoublyLinkedList.Node<ElectionData> current = getElectionRecordNode(sc);
         if (current == null) return;
-        myLinkedList.removeNode(current.getData());
-        System.out.println("Candidate record deleted.");
+        myLinkedList.deleteNode(current.getData());
+        myStack.push(new UndoAction(Action.DELETE, current.getData(), current.getPrev()));
+        System.out.println("\t\t*** CANDIDATE WAS DELETED ***");
+        System.out.println(header());
+        System.out.println(current.getData());
         System.out.println(BAR);
     }
     public void display() {
         System.out.println(BAR);
         System.out.println(header());
-        myLinkedList.display();
+        myLinkedList.displayForward();
         System.out.println(BAR);
     }
 
@@ -198,6 +209,7 @@ public class ElectionService {
                 case 3 -> myBST.postorder(myBST.getRoot());
                 case 4 -> System.out.println("Most Votes: " + myBST.getMaximum(myBST.getRoot()));
                 case 5 -> System.out.println("Least Votes: " + myBST.getMinimum(myBST.getRoot()));
+                default -> throw new IllegalStateException("Unexpected value: " + choice);
             }
             System.out.println(BAR);
         } while (choice != 0);
@@ -242,7 +254,7 @@ public class ElectionService {
     }
 
     private long totalVotes() {
-        LinkedList.Node<ElectionData> current = myLinkedList.getHead();
+        DoublyLinkedList.Node<ElectionData> current = myLinkedList.getHead();
         long total = 0;
         while (current != null ) {
             total += current.getData().getVotesReceived();
@@ -272,21 +284,61 @@ public class ElectionService {
         System.out.println(BAR);
     }
 
-    private LinkedList.Node<ElectionData> getElectionRecordNode(Scanner sc) {
-        String name = sc.nextLine();
+    private DoublyLinkedList.Node<ElectionData> getElectionRecordNode(Scanner sc) {
+        // Read and store the candidate name
+        String name = sc.nextLine().trim(); // .trim() to clean up whitespace
 
-        LinkedList.Node<ElectionData> current = myLinkedList.getHead();
-        while (current != null ) {
+        DoublyLinkedList.Node<ElectionData> current = myLinkedList.getHead();
+
+        // Use the loop to find the record
+        while (current != null) {
             if (current.getData().getCandidateName().equalsIgnoreCase(name)) {
-                break;
+                break; // Found the record
             }
             current = current.getNext();
         }
 
         if (current == null) {
-            System.out.println("Candidate not found.");
+            System.out.println("Error: Candidate \"" + name + "\" not found.");
             return null;
         }
+
         return current;
+    }
+
+    public void undoLast() {
+        if (myStack.isEmpty()) {
+            System.out.println("Nothing to undo");
+        }else {
+            UndoAction undoAction = myStack.pop();
+            switch (undoAction.getAction()) {
+                case INSERT -> deleteAction();
+                case UPDATE -> restoreAction(undoAction.getNode(), undoAction.getData());
+                case DELETE -> insertAction(undoAction.getData(), undoAction.getNode());
+            }
+            System.out.println("LAST OPERATION HAS BEEN UNDONE");
+            System.out.println(BAR);
+        }
+
+    }
+
+    private void insertAction(ElectionData data, DoublyLinkedList.Node<ElectionData> node) {
+        if(node == null) {
+           myLinkedList.addFirst(data);
+        }else {
+            myLinkedList.addAfter(node, data);
+        }
+    }
+
+    private void deleteAction() {
+        myLinkedList.deleteFirst();
+    }
+
+    private void restoreAction(DoublyLinkedList.Node<ElectionData> targetNode, ElectionData oldData) {
+        targetNode.getData().setYear(oldData.getYear());
+        targetNode.getData().setParty(oldData.getParty());
+        targetNode.getData().setState(oldData.getState());
+        targetNode.getData().setCandidateName(oldData.getCandidateName());
+        targetNode.getData().setVotesReceived(oldData.getVotesReceived());
     }
 }

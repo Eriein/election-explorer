@@ -5,13 +5,14 @@ import service.ElectionService;
 import java.util.Scanner;
 
 public class User {
-    private static ElectionService electionService = new ElectionService();;
+    private static final ElectionService electionService = new ElectionService();
+
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        electionService.loadData();
         String title = "\n===== Election Explorer System =====";
         System.out.println(title);
         System.out.println("Loading Data from CSV");
+        electionService.loadData();
 
         int choice;
         int controlTitle = 0;
@@ -23,6 +24,7 @@ public class User {
             System.out.println("4. Search Records");
             System.out.println("5. Display All Candidates Information");
             System.out.println("6. BST Operations");
+            System.out.println("8. Undo Last Operation");
             System.out.println("7. Generate Report");
             System.out.println("0. Exit");
             System.out.print("Enter choice: ");
@@ -37,7 +39,7 @@ public class User {
                     case 5 -> electionService.display();
                     case 6 -> electionService.bstMenu(sc);
                     case 7 -> electionService.generateReport();
-                    // case 8 -> electionService.stackOperations
+                    case 8 -> electionService.undoLast();
                     case 0 -> System.out.println("Exiting...");
                     default -> System.out.println("Invalid choice!");
                 }
