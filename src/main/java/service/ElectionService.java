@@ -106,7 +106,11 @@ public class ElectionService {
 
         ElectionData data = new ElectionData(year, state, party, candidate, votes);
         myLinkedList.addFirst(data);
+        int idx = myArrayList.size();
+        myArrayList.add(idx, data);
         myStack.push(new UndoAction(Action.INSERT, data, myLinkedList.getTail()));
+        myBST.insert(data);
+        myQueue.enQueue(data.getYear(), data.getState(), data.getParty(), data.getCandidateName(),data.getVotesReceived());
 
         System.out.println(BAR);
         System.out.println("    *** CANDIDATE INSERTED ***\n");
@@ -165,6 +169,9 @@ public class ElectionService {
             System.out.println("Error: Please enter a number for your choice (e.g., 1, 2, 3, 4, 5).\n");
         }
         System.out.println("    *** RECORD UPDATED ***\n");
+        var foundNode = myBST.find(data); // Extract variable for the found node
+        myBST.delete(foundNode.getData());
+        myBST.insert(data);
         System.out.println(header());
         System.out.println(data);
         System.out.println(BAR);
@@ -177,6 +184,7 @@ public class ElectionService {
         if (current == null) return;
         myLinkedList.deleteNode(current.getData());
         myStack.push(new UndoAction(Action.DELETE, current.getData(), current.getPrev()));
+        myBST.delete(current.getData());
         System.out.println("    *** CANDIDATE WAS DELETED ***\n");
         System.out.println(header());
         System.out.println(current.getData());
@@ -252,6 +260,7 @@ public class ElectionService {
 
     }
 
+
     private void generateSummaryReport() {
         System.out.println(BAR);
         System.out.println("    *** ELECTION SUMMARY REPORT ***\n");
@@ -316,7 +325,7 @@ public class ElectionService {
         } else {
             UndoAction undoAction = myStack.pop();
             switch (undoAction.getAction()) {
-                case INSERT -> deleteAction();
+                case INSERT -> deleteAction(undoAction.getData());
                 case UPDATE -> restoreAction(undoAction.getNode(), undoAction.getData());
                 case DELETE -> insertAction(undoAction.getData(), undoAction.getNode());
             }
@@ -328,13 +337,15 @@ public class ElectionService {
     private void insertAction(ElectionData data, DoublyLinkedList.Node<ElectionData> node) {
         if(node == null) {
            myLinkedList.addFirst(data);
+           myBST.insert(data);
         }else {
             myLinkedList.addAfter(node, data);
         }
     }
 
-    private void deleteAction() {
+    private void deleteAction(ElectionData data) {
         myLinkedList.deleteFirst();
+        myBST.delete(data);
     }
 
     private void restoreAction(DoublyLinkedList.Node<ElectionData> targetNode, ElectionData oldData) {
@@ -343,5 +354,8 @@ public class ElectionService {
         targetNode.getData().setState(oldData.getState());
         targetNode.getData().setCandidateName(oldData.getCandidateName());
         targetNode.getData().setVotesReceived(oldData.getVotesReceived());
+
+        myBST.delete(oldData);
+        myBST.insert(targetNode.getData());
     }
 }

@@ -24,8 +24,8 @@ public class User {
             System.out.println("4. Search Records");
             System.out.println("5. Display All Candidates Information");
             System.out.println("6. BST Operations");
-            System.out.println("8. Undo Last Operation");
-            System.out.println("7. Generate Report");
+            System.out.println("7. Undo Last Operation");
+            System.out.println("8. Generate Report");
             System.out.println("0. Exit");
             System.out.print("Enter choice: ");
 
@@ -38,8 +38,8 @@ public class User {
                     case 4 -> electionService.searchRecord(sc);
                     case 5 -> electionService.display();
                     case 6 -> electionService.bstMenu(sc);
-                    case 7 -> electionService.generateReport();
-                    case 8 -> electionService.undoLast();
+                    case 7 -> electionService.undoLast();
+                    case 8 -> electionService.generateReport();
                     case 0 -> System.out.println("Exiting...");
                     default -> System.out.println("Invalid choice!");
                 }
