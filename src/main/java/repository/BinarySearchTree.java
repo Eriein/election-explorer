@@ -2,7 +2,7 @@ package repository;
 
 public class BinarySearchTree<E extends Comparable<E>> {
 
-    private static class BinaryTreeNode<E> {
+    public static class BinaryTreeNode<E> {
         private E data;
         private BinaryTreeNode<E> leftChild;
         private BinaryTreeNode<E> rightChild;
@@ -85,6 +85,61 @@ public class BinarySearchTree<E extends Comparable<E>> {
 
         return null; // Not found
     }
+    public void delete(E value) {
+        root = deleteNode(root, value);
+    }
+
+    private BinaryTreeNode<E> deleteNode(BinaryTreeNode<E> node, E value) {
+        if (node == null) {
+            System.out.println("Value not found: " + value);
+            return null;
+        }
+
+        int compare = value.compareTo(node.data);
+
+        // find node
+        if (compare < 0) {
+            node.leftChild = deleteNode(node.leftChild, value);
+        } else if (compare > 0) {
+            node.rightChild = deleteNode(node.rightChild, value);
+        } else {
+
+            // Case 1: No child
+            if (node.leftChild == null && node.rightChild == null) {
+                size--;
+                return null;
+            }
+
+            // Case 2: One child
+            if (node.leftChild == null) {
+                BinaryTreeNode<E> temp = node.rightChild;
+                temp.parent = node.parent;
+                size--;
+                return temp;
+            } else if (node.rightChild == null) {
+                BinaryTreeNode<E> temp = node.leftChild;
+                temp.parent = node.parent;
+                size--;
+                return temp;
+            }else {
+                // Case 3: Two children – replace it with smaller on the right
+                BinaryTreeNode<E> successor = getMinimumNode(node.rightChild);
+                node.data = successor.data;
+                node.rightChild = deleteNode(node.rightChild, successor.data);
+            }
+        }
+
+        return node;
+    }
+
+    // Helper to get the minimum node (not just value)
+    private BinaryTreeNode<E> getMinimumNode(BinaryTreeNode<E> node) {
+        while (node.leftChild != null) {
+            node = node.leftChild;
+        }
+        return node;
+    }
+
 
     // left, root, right
     public void inorder(BinaryTreeNode<E> node) {
